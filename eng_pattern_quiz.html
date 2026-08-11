@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>英語表現クイズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,700;1,500&family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#17140f;
+    --card:#211d16;
+    --card2:#282318;
+    --parchment:#eae0c6;
+    --parchment-dim:#a89b7c;
+    --thread:#a1442f;
+    --thread-dim:#5c2a20;
+    --gold:#b8935f;
+    --gold-dim:#7a6440;
+    --line:#3a3326;
+    --good:#7a8f5c;
+    --bad:#a1442f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, #241f16 0%, transparent 55%),
+      radial-gradient(ellipse at 100% 110%, #1c1810 0%, transparent 55%),
+      var(--ink);
+    color:var(--parchment);
+    font-family:'Noto Sans JP',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 16px 64px;
+  }
+  .app{width:100%;max-width:640px;}
+
+  /* ---------- header / progress ---------- */
+  .top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .title{
+    font-family:'Noto Serif JP',serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.14em;
+    color:var(--gold);
+  }
+  .counter{
+    font-size:12px;
+    color:var(--parchment-dim);
+    font-variant-numeric:tabular-nums;
+  }
+  .stitches{
+    display:flex;
+    gap:3px;
+    margin:10px 0 28px;
+  }
+  .stitch{
+    flex:1;
+    height:3px;
+    background:var(--line);
+    border-radius:1px;
+    transition:background .25s ease;
+  }
+  .stitch.done{background:var(--thread);}
+  .stitch.current{background:var(--gold);}
+
+  /* ---------- card ---------- */
+  .card{
+    background:linear-gradient(180deg,var(--card2),var(--card));
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:36px 30px 28px;
+    position:relative;
+    box-shadow:0 20px 40px -20px rgba(0,0,0,.6);
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:0;left:24px;right:24px;
+    height:1px;
+    background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+  }
+  .cat{
+    font-size:11px;
+    letter-spacing:.16em;
+    color:var(--parchment-dim);
+    text-align:center;
+    margin-bottom:18px;
+    text-transform:uppercase;
+  }
+
+  .prompt-ja{
+    font-family:'Noto Serif JP',serif;
+    font-size:19px;
+    font-weight:500;
+    color:var(--parchment);
+    text-align:center;
+    margin-bottom:8px;
+    line-height:1.7;
+  }
+  .prompt-sub{
+    font-size:12px;
+    color:var(--parchment-dim);
+    text-align:center;
+    margin-bottom:26px;
+  }
+
+  .options{
+    display:grid;
+    gap:10px;
+  }
+  .opt{
+    text-align:left;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--parchment);
+    padding:14px 16px;
+    border-radius:4px;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:15px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .opt .opt-en{
+    font-family:'EB Garamond',serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:18px;
+    color:var(--gold);
+  }
+  .opt:hover:not(:disabled){border-color:var(--gold-dim);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:var(--good);background:rgba(122,143,92,.14);}
+  .opt.wrong{border-color:var(--bad);background:rgba(161,68,47,.14);}
+  .opt.reveal{border-color:var(--good);}
+
+  .feedback{
+    margin-top:16px;
+    min-height:20px;
+    font-size:13px;
+    text-align:center;
+    color:var(--parchment-dim);
+  }
+  .feedback b{color:var(--gold);font-weight:700;font-family:'EB Garamond',serif;font-style:italic;}
+
+  .nextrow{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:18px;
+  }
+  .next-btn{
+    background:var(--thread);
+    color:var(--parchment);
+    border:none;
+    padding:10px 22px;
+    border-radius:4px;
+    font-size:14px;
+    letter-spacing:.04em;
+    cursor:pointer;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .next-btn.show{opacity:1;pointer-events:auto;}
+  .next-btn:hover{background:#b64f37;}
+
+  /* ---------- start / result screens ---------- */
+  .center-card{
+    background:linear-gradient(180deg,var(--card2),var(--card));
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:44px 30px;
+    text-align:center;
+  }
+  .mark{
+    font-family:'EB Garamond',serif;
+    font-style:italic;
+    font-size:40px;
+    color:var(--gold);
+    margin-bottom:8px;
+  }
+  h1.headline{
+    font-family:'Noto Serif JP',serif;
+    font-size:22px;
+    margin:0 0 10px;
+    font-weight:700;
+  }
+  p.sub{
+    color:var(--parchment-dim);
+    font-size:13.5px;
+    line-height:1.8;
+    margin:0 0 28px;
+  }
+  .range-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-bottom:28px;
+  }
+  .range-cell{
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:12px 8px;
+    font-size:12px;
+    color:var(--parchment-dim);
+  }
+  .range-cell b{
+    display:block;
+    font-family:'Noto Serif JP',serif;
+    font-size:20px;
+    color:var(--gold);
+    font-weight:700;
+    margin-bottom:2px;
+  }
+  .primary-btn{
+    background:var(--thread);
+    color:var(--parchment);
+    border:none;
+    padding:14px 34px;
+    border-radius:4px;
+    font-size:15px;
+    letter-spacing:.05em;
+    cursor:pointer;
+  }
+  .primary-btn:hover{background:#b64f37;}
+  .ghost-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--parchment-dim);
+    padding:14px 24px;
+    border-radius:4px;
+    font-size:14px;
+    cursor:pointer;
+    margin-left:10px;
+  }
+  .ghost-btn:hover{border-color:var(--gold-dim);color:var(--parchment);}
+
+  .score-big{
+    font-family:'Noto Serif JP',serif;
+    font-size:52px;
+    font-weight:700;
+    color:var(--gold);
+    margin:6px 0 2px;
+  }
+  .score-label{
+    font-size:12px;
+    color:var(--parchment-dim);
+    letter-spacing:.1em;
+    margin-bottom:26px;
+  }
+  .breakdown{
+    text-align:left;
+    border-top:1px solid var(--line);
+    padding-top:18px;
+    margin-top:8px;
+  }
+  .bd-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:7px 0;
+    border-bottom:1px solid var(--line);
+    color:var(--parchment-dim);
+  }
+  .bd-row b{color:var(--parchment);font-weight:500;}
+  .review-list{
+    text-align:left;
+    margin-top:22px;
+    max-height:260px;
+    overflow-y:auto;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+  .review-item{
+    font-size:12.5px;
+    padding:10px 0;
+    border-bottom:1px solid var(--line);
+    color:var(--parchment-dim);
+  }
+  .review-item.is-correct{color:var(--parchment-dim);}
+  .review-item .rmark{margin-right:6px;}
+  .review-item .rprompt{color:var(--parchment);}
+  .review-item .ra{color:var(--good);font-family:'EB Garamond',serif;font-style:italic;}
+  .review-item .rw{color:var(--bad);text-decoration:line-through;margin-right:4px;font-family:'EB Garamond',serif;font-style:italic;}
+  .review-item .rexplain{
+    display:block;
+    margin-top:4px;
+    font-size:11.5px;
+    color:var(--parchment-dim);
+    padding-left:20px;
+  }
+
+  .hidden{display:none !important;}
+
+  @media (max-width:480px){
+    .card,.center-card{padding:26px 18px 22px;}
+    .range-grid{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- START SCREEN -->
+  <div id="screen-start" class="center-card">
+    <div class="mark">Say it.</div>
+    <h1 class="headline">英語表現クイズ</h1>
+    <p class="sub">日常会話でよく使う50パターン。状況文を読んで、対応する英語表現を選ぶ。<br>問題順・選択肢の配置は毎回ランダム。</p>
+    <div class="range-grid">
+      <div class="range-cell"><b id="cnt-patterns">-</b>表現パターン</div>
+      <div class="range-cell"><b id="cnt-full">-</b>問（全問版）</div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="primary-btn" onclick="startQuiz('full')">全問版（<span id="cnt-full2">-</span>問）</button>
+      <button class="ghost-btn" onclick="startQuiz('short')">短縮版（20問）</button>
+    </div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="screen-quiz" class="hidden">
+    <div class="top">
+      <div class="title">英語表現クイズ</div>
+      <div class="counter"><span id="qnum">1</span> / <span id="qtotal">0</span></div>
+    </div>
+    <div class="stitches" id="stitches"></div>
+
+    <div class="card">
+      <div class="cat" id="q-cat"></div>
+      <div class="prompt-ja" id="q-prompt"></div>
+      <div class="prompt-sub">この場面に合う表現はどれ？</div>
+      <div class="options" id="q-options"></div>
+      <div class="feedback" id="q-feedback"></div>
+      <div class="nextrow">
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="screen-result" class="center-card hidden">
+    <div class="mark" style="font-size:30px;">Done.</div>
+    <h1 class="headline">結果</h1>
+    <div class="score-big"><span id="score-num">0</span> / <span id="score-total">0</span></div>
+    <div class="score-label" id="score-pct">正答率 0%</div>
+
+    <div class="breakdown" id="breakdown"></div>
+
+    <div id="review-wrap">
+      <div class="review-list" id="review-list"></div>
+    </div>
+
+    <div style="margin-top:26px;">
+      <button class="primary-btn" onclick="startQuiz(lastMode)">もう一度（同じ形式）</button>
+      <button class="ghost-btn" onclick="showStart()">最初の画面へ</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   1. データソース（正誤の元となる唯一の情報源）
+   ========================================================= */
+
+// 各パターン：en=英語表現／jp=直訳的な意味／example=その表現を使う状況文（日本語）／cat=分類
+const PATTERNS = [
+  {en:"I think (that) ~", jp:"~だと思う", example:"これは正しいと思う。", cat:"思考・推量"},
+  {en:"I guess ~", jp:"~かなと思う", example:"たぶん明日は雨かなと思う。", cat:"思考・推量"},
+  {en:"I hope ~", jp:"~だといいな", example:"明日晴れるといいな。", cat:"思考・推量"},
+  {en:"I wonder if ~", jp:"~かな？", example:"彼は来るのかな？", cat:"思考・推量"},
+  {en:"I'm not sure if ~", jp:"~かどうか自信がない", example:"これで合っているかどうか自信がない。", cat:"思考・推量"},
+  {en:"I don't know if ~", jp:"~かどうか知らない", example:"彼が来るかどうか知らない。", cat:"思考・推量"},
+  {en:"I'm afraid that ~", jp:"残念ながら~だ", example:"残念ながら間に合わなかった。", cat:"思考・推量"},
+  {en:"It seems ~", jp:"~のようだ", example:"彼は疲れているようだ。", cat:"思考・推量"},
+  {en:"Do you know if ~?", jp:"~かどうか知ってる？", example:"彼が来るかどうか知ってる？", cat:"思考・推量"},
+  {en:"I want to (wanna) ~", jp:"~したい", example:"早く家に帰りたい。", cat:"意志・予定"},
+  {en:"I'd like to ~", jp:"~したいです", example:"コーヒーを一杯いただきたいです。", cat:"意志・予定"},
+  {en:"I decided to ~", jp:"~することにした", example:"留学することにした。", cat:"意志・予定"},
+  {en:"I'm planning to ~", jp:"~する予定だ", example:"来月引っ越す予定だ。", cat:"意志・予定"},
+  {en:"I am thinking of ~", jp:"~しようと考えている", example:"転職しようと考えている。", cat:"意志・予定"},
+  {en:"I'm going to ~", jp:"~するつもりだ", example:"今夜は早く寝るつもりだ。", cat:"意志・予定"},
+  {en:"I have to ~", jp:"~しなければならない", example:"明日までにレポートを提出しなければならない。", cat:"義務・必要"},
+  {en:"I need to ~", jp:"~する必要がある", example:"もっと運動する必要がある。", cat:"義務・必要"},
+  {en:"There is no need to ~", jp:"~する必要はない", example:"急ぐ必要はない。", cat:"義務・必要"},
+  {en:"It's easy to ~", jp:"~するのは簡単だ", example:"このアプリを使うのは簡単だ。", cat:"評価・難易"},
+  {en:"It's hard to ~", jp:"~するのは難しい", example:"早起きするのは難しい。", cat:"評価・難易"},
+  {en:"It's important to ~", jp:"~するのは大切だ", example:"毎日水を飲むのは大切だ。", cat:"評価・難易"},
+  {en:"The best way to ~ is ~", jp:"~する一番の方法は~", example:"英語を上達させる一番の方法は毎日話すことだ。", cat:"評価・難易"},
+  {en:"It's OK to ~", jp:"~してもいいよ", example:"ここに座ってもいいよ。", cat:"許可"},
+  {en:"Can I ~?", jp:"~してもいい？", example:"窓を開けてもいい？", cat:"許可"},
+  {en:"Do you mind if I ~?", jp:"~しても構いませんか？", example:"ここに座っても構いませんか？", cat:"許可"},
+  {en:"Would you mind if I ~?", jp:"~してもよろしいでしょうか？", example:"少し早く帰ってもよろしいでしょうか？", cat:"許可"},
+  {en:"Is it okay if I ~?", jp:"~しても大丈夫？", example:"今電話しても大丈夫？", cat:"許可"},
+  {en:"Do you want to ~?", jp:"~したい？", example:"一緒に映画を見に行きたい？", cat:"勧誘・依頼"},
+  {en:"Would you like to ~?", jp:"~しませんか？", example:"お茶でも飲みませんか？", cat:"勧誘・依頼"},
+  {en:"Should I ~?", jp:"~した方がいいかな？", example:"傘を持って行った方がいいかな？", cat:"勧誘・依頼"},
+  {en:"Let me ~", jp:"~させて", example:"それ、私にやらせて。", cat:"勧誘・依頼"},
+  {en:"Make sure to ~", jp:"必ず~してね", example:"出かける前に必ず鍵をかけてね。", cat:"勧誘・依頼"},
+  {en:"Be sure to ~", jp:"必ず~すること", example:"提出前に必ず見直すこと。", cat:"勧誘・依頼"},
+  {en:"Don't forget to ~", jp:"~するのを忘れないで", example:"薬を飲むのを忘れないで。", cat:"勧誘・依頼"},
+  {en:"Feel free to ~", jp:"遠慮なく~して", example:"質問があれば遠慮なく聞いて。", cat:"勧誘・依頼"},
+  {en:"I'm happy to ~", jp:"~できて嬉しい", example:"あなたに会えて嬉しい。", cat:"感情"},
+  {en:"I'm glad to ~", jp:"~できてよかった", example:"無事に着けてよかった。", cat:"感情"},
+  {en:"I'm sorry to ~", jp:"~してごめんなさい", example:"遅れてごめんなさい。", cat:"感情"},
+  {en:"I didn't mean to ~", jp:"~するつもりじゃなかった", example:"あなたを傷つけるつもりじゃなかった。", cat:"感情"},
+  {en:"I'm lucky to ~", jp:"~できてラッキーだ", example:"最後の切符が買えてラッキーだ。", cat:"感情"},
+  {en:"It's nice to ~", jp:"~するのはいいものだ", example:"たまにはゆっくりするのはいいものだ。", cat:"感情"},
+  {en:"It's fun to ~", jp:"~するのは楽しい", example:"友達と料理するのは楽しい。", cat:"感情"},
+  {en:"I don't feel like ~ing", jp:"~する気がしない", example:"今日は勉強する気がしない。", cat:"感情"},
+  {en:"I can't wait to ~", jp:"~するのが楽しみだ", example:"旅行に行くのが楽しみだ。", cat:"感情"},
+  {en:"I'd rather ~", jp:"むしろ~したい", example:"外食するよりむしろ家で食べたい。", cat:"習慣・状態"},
+  {en:"I used to ~", jp:"昔は~していた", example:"昔はよくギターを弾いていた。", cat:"習慣・状態"},
+  {en:"I was about to ~", jp:"ちょうど~するところだった", example:"ちょうど出かけるところだった。", cat:"習慣・状態"},
+  {en:"I'm ready to ~", jp:"~する準備ができた", example:"もう出発する準備ができた。", cat:"習慣・状態"},
+  {en:"I'm trying to ~", jp:"~しようとしている", example:"もっと早く起きようとしている。", cat:"習慣・状態"},
+  {en:"It's time to ~", jp:"~する時間だ", example:"もう寝る時間だ。", cat:"習慣・状態"},
+];
+
+/* =========================================================
+   2. 問題生成（データから自動生成。手打ちの誤答は作らない）
+   ========================================================= */
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function pickN(pool, n){
+  return shuffle(pool).slice(0, Math.min(n, pool.length));
+}
+
+let ALL_QUESTIONS = [];
+
+function buildQuestions(){
+  const qs = [];
+  PATTERNS.forEach(p=>{
+    const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.en), 7);
+    qs.push({
+      cat:p.cat, type:"pattern",
+      prompt:p.example,
+      answer:p.en, wrongPool:wrong,
+      explain:`「${p.example}」→「${p.en}」（${p.jp}）を使う場面。`
+    });
+  });
+  return qs;
+}
+
+/* =========================================================
+   3. クイズ進行ロジック
+   ========================================================= */
+
+let order = [];
+let current = 0;
+let score = 0;
+let results = [];
+let answeredThis = false;
+let currentOptions = [];
+
+function showStart(){
+  document.getElementById('screen-start').classList.remove('hidden');
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+}
+
+function initCounts(){
+  document.getElementById('cnt-patterns').textContent = PATTERNS.length;
+  document.getElementById('cnt-full').textContent = buildQuestions().length;
+  document.getElementById('cnt-full2').textContent = PATTERNS.length;
+}
+
+let lastMode = 'full';
+
+function startQuiz(mode){
+  lastMode = mode || lastMode;
+  ALL_QUESTIONS = buildQuestions();
+  order = shuffle(ALL_QUESTIONS);
+  if(lastMode === 'short'){
+    order = order.slice(0, 20);
+  }
+  current = 0;
+  score = 0;
+  results = [];
+
+  document.getElementById('screen-start').classList.add('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.remove('hidden');
+
+  document.getElementById('qtotal').textContent = order.length;
+  buildStitches();
+  renderQuestion();
+}
+
+function buildStitches(){
+  const wrap = document.getElementById('stitches');
+  wrap.innerHTML = '';
+  const n = order.length;
+  for(let i=0;i<n;i++){
+    const d = document.createElement('div');
+    d.className = 'stitch';
+    d.id = 'stitch-'+i;
+    wrap.appendChild(d);
+  }
+}
+
+function updateStitches(){
+  for(let i=0;i<order.length;i++){
+    const el = document.getElementById('stitch-'+i);
+    if(!el) continue;
+    el.classList.remove('done','current');
+    if(i < current) el.classList.add('done');
+    else if(i === current) el.classList.add('current');
+  }
+}
+
+function renderQuestion(){
+  answeredThis = false;
+  const q = order[current];
+  document.getElementById('qnum').textContent = current+1;
+  updateStitches();
+
+  document.getElementById('q-cat').textContent = q.cat;
+  document.getElementById('q-prompt').textContent = q.prompt;
+
+  const chosenWrongs = pickN(q.wrongPool, 3);
+  currentOptions = shuffle([{text:q.answer, correct:true}, ...chosenWrongs.map(w=>({text:w, correct:false}))]);
+
+  const optWrap = document.getElementById('q-options');
+  optWrap.innerHTML = '';
+  currentOptions.forEach(opt=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    const span = document.createElement('span');
+    span.className = 'opt-en';
+    span.textContent = opt.text;
+    b.appendChild(span);
+    b.onclick = ()=>selectOption(b, opt, q);
+    optWrap.appendChild(b);
+  });
+
+  document.getElementById('q-feedback').innerHTML = '';
+  document.getElementById('next-btn').classList.remove('show');
+}
+
+function selectOption(btn, opt, q){
+  if(answeredThis) return;
+  answeredThis = true;
+
+  const allBtns = document.querySelectorAll('#q-options .opt');
+  allBtns.forEach(b=>b.disabled = true);
+
+  if(opt.correct){
+    btn.classList.add('correct');
+    score++;
+    document.getElementById('q-feedback').innerHTML = '<b>正解。</b>';
+  } else {
+    btn.classList.add('wrong');
+    allBtns.forEach(b=>{
+      const span = b.querySelector('.opt-en');
+      if(span && span.textContent === q.answer){
+        b.classList.add('reveal');
+      }
+    });
+    document.getElementById('q-feedback').innerHTML = '不正解。正解: <b>'+q.answer+'</b>';
+  }
+
+  results.push({cat:q.cat, prompt:q.prompt, answer:q.answer, chosen:opt.text, correct:opt.correct, explain:q.explain});
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= order.length){
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult(){
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-result').classList.remove('hidden');
+
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('score-total').textContent = order.length;
+  const pct = Math.round((score/order.length)*100);
+  document.getElementById('score-pct').textContent = '正答率 ' + pct + '%';
+
+  const byCat = {};
+  results.forEach(r=>{
+    if(!byCat[r.cat]) byCat[r.cat] = {correct:0, total:0};
+    byCat[r.cat].total++;
+    if(r.correct) byCat[r.cat].correct++;
+  });
+  const bd = document.getElementById('breakdown');
+  bd.innerHTML = '';
+  Object.keys(byCat).forEach(cat=>{
+    const row = document.createElement('div');
+    row.className = 'bd-row';
+    row.innerHTML = '<span>'+cat+'</span><b>'+byCat[cat].correct+' / '+byCat[cat].total+'</b>';
+    bd.appendChild(row);
+  });
+
+  const rl = document.getElementById('review-list');
+  rl.innerHTML = '';
+  const h = document.createElement('div');
+  h.style.fontSize='12px';
+  h.style.color='var(--parchment-dim)';
+  h.style.marginBottom='10px';
+  h.textContent = '解答一覧（全'+results.length+'問）';
+  rl.appendChild(h);
+
+  results.forEach(r=>{
+    const item = document.createElement('div');
+    item.className = 'review-item' + (r.correct ? ' is-correct' : ' is-wrong');
+    if(r.correct){
+      item.innerHTML =
+        '<span class="rmark">✅</span><span class="rprompt">'+r.prompt+'</span>　<span class="ra">'+r.answer+'</span>';
+    } else {
+      item.innerHTML =
+        '<span class="rmark">❌</span><span class="rprompt">'+r.prompt+'</span>　'+
+        '<span class="rw">'+r.chosen+'</span><span class="ra">→ '+r.answer+'</span>'+
+        '<span class="rexplain">'+r.explain+'</span>';
+    }
+    rl.appendChild(item);
+  });
+}
+
+initCounts();
+</script>
+</body>
+</html>
