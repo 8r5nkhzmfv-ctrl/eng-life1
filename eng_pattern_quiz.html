@@ -113,6 +113,33 @@
     margin-bottom:26px;
   }
 
+  .hero{
+    text-align:center;
+    margin-bottom:22px;
+    min-height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .audio-btn{
+    width:76px;height:76px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #c79a5f, #7a5a33 70%);
+    border:1px solid var(--gold-dim);
+    color:var(--ink);
+    font-size:26px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 14px -4px rgba(0,0,0,.6), inset 0 0 0 3px rgba(23,20,15,.25);
+    transition:transform .15s ease;
+  }
+  .audio-btn:active{transform:scale(.94);}
+  .audio-hint{
+    font-size:11px;
+    color:var(--parchment-dim);
+    margin-top:8px;
+  }
+
   .options{
     display:grid;
     gap:10px;
@@ -139,6 +166,10 @@
     font-size:18px;
     color:var(--gold);
   }
+  .opt .opt-jp{
+    font-size:15px;
+    color:var(--parchment);
+  }
   .opt:hover:not(:disabled){border-color:var(--gold-dim);}
   .opt:disabled{cursor:default;}
   .opt.correct{border-color:var(--good);background:rgba(122,143,92,.14);}
@@ -152,7 +183,7 @@
     text-align:center;
     color:var(--parchment-dim);
   }
-  .feedback b{color:var(--gold);font-weight:700;font-family:'EB Garamond',serif;font-style:italic;}
+  .feedback b{color:var(--gold);font-weight:700;}
 
   .nextrow{
     display:flex;
@@ -291,8 +322,8 @@
   .review-item.is-correct{color:var(--parchment-dim);}
   .review-item .rmark{margin-right:6px;}
   .review-item .rprompt{color:var(--parchment);}
-  .review-item .ra{color:var(--good);font-family:'EB Garamond',serif;font-style:italic;}
-  .review-item .rw{color:var(--bad);text-decoration:line-through;margin-right:4px;font-family:'EB Garamond',serif;font-style:italic;}
+  .review-item .ra{color:var(--good);}
+  .review-item .rw{color:var(--bad);text-decoration:line-through;margin-right:4px;}
   .review-item .rexplain{
     display:block;
     margin-top:4px;
@@ -316,7 +347,7 @@
   <div id="screen-start" class="center-card">
     <div class="mark">Say it.</div>
     <h1 class="headline">英語表現クイズ</h1>
-    <p class="sub">日常会話でよく使う50パターン。状況文を読んで、対応する英語表現を選ぶ。<br>問題順・選択肢の配置は毎回ランダム。</p>
+    <p class="sub">日常会話でよく使う50パターン。状況文→英語表現（産出）と、音声→意味（リスニング）の2種類。<br>問題順・選択肢の配置は毎回ランダム。</p>
     <div class="range-grid">
       <div class="range-cell"><b id="cnt-patterns">-</b>表現パターン</div>
       <div class="range-cell"><b id="cnt-full">-</b>問（全問版）</div>
@@ -324,6 +355,8 @@
     <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
       <button class="primary-btn" onclick="startQuiz('full')">全問版（<span id="cnt-full2">-</span>問）</button>
       <button class="ghost-btn" onclick="startQuiz('short')">短縮版（20問）</button>
+      <button class="ghost-btn" onclick="startQuiz('produce')">産出のみ（<span id="cnt-produce">-</span>問）</button>
+      <button class="ghost-btn" onclick="startQuiz('listen')">リスニングのみ（<span id="cnt-listen">-</span>問）</button>
     </div>
   </div>
 
@@ -338,7 +371,8 @@
     <div class="card">
       <div class="cat" id="q-cat"></div>
       <div class="prompt-ja" id="q-prompt"></div>
-      <div class="prompt-sub">この場面に合う表現はどれ？</div>
+      <div class="prompt-sub" id="q-prompt-sub">この場面に合う表現はどれ？</div>
+      <div class="hero" id="q-hero"></div>
       <div class="options" id="q-options"></div>
       <div class="feedback" id="q-feedback"></div>
       <div class="nextrow">
@@ -445,18 +479,40 @@ function pickN(pool, n){
 
 let ALL_QUESTIONS = [];
 
-function buildQuestions(){
+function buildProduceQuestions(){
   const qs = [];
   PATTERNS.forEach(p=>{
     const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.en), 7);
     qs.push({
-      cat:p.cat, type:"pattern",
+      cat:p.cat, type:"pattern", optionStyle:"en",
       prompt:p.example,
+      promptSub:"この場面に合う表現はどれ？",
+      hero:{kind:"none"},
       answer:p.en, wrongPool:wrong,
       explain:`「${p.example}」→「${p.en}」（${p.jp}）を使う場面。`
     });
   });
   return qs;
+}
+
+function buildListenQuestions(){
+  const qs = [];
+  PATTERNS.forEach(p=>{
+    const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.jp), 7);
+    qs.push({
+      cat:p.cat, type:"pattern-audio", optionStyle:"jp",
+      prompt:"読み上げられた表現の意味は？",
+      promptSub:"",
+      hero:{kind:"audio", text:p.en},
+      answer:p.jp, wrongPool:wrong,
+      explain:`「${p.en}」は「${p.jp}」という意味（例：${p.example}）。`
+    });
+  });
+  return qs;
+}
+
+function buildQuestions(){
+  return [...buildProduceQuestions(), ...buildListenQuestions()];
 }
 
 /* =========================================================
@@ -479,14 +535,22 @@ function showStart(){
 function initCounts(){
   document.getElementById('cnt-patterns').textContent = PATTERNS.length;
   document.getElementById('cnt-full').textContent = buildQuestions().length;
-  document.getElementById('cnt-full2').textContent = PATTERNS.length;
+  document.getElementById('cnt-full2').textContent = buildQuestions().length;
+  document.getElementById('cnt-produce').textContent = PATTERNS.length;
+  document.getElementById('cnt-listen').textContent = PATTERNS.length;
 }
 
 let lastMode = 'full';
 
 function startQuiz(mode){
   lastMode = mode || lastMode;
-  ALL_QUESTIONS = buildQuestions();
+  if(lastMode === 'produce'){
+    ALL_QUESTIONS = buildProduceQuestions();
+  } else if(lastMode === 'listen'){
+    ALL_QUESTIONS = buildListenQuestions();
+  } else {
+    ALL_QUESTIONS = buildQuestions();
+  }
   order = shuffle(ALL_QUESTIONS);
   if(lastMode === 'short'){
     order = order.slice(0, 20);
@@ -526,6 +590,19 @@ function updateStitches(){
   }
 }
 
+function speakEnglish(text){
+  try{
+    const u = new SpeechSynthesisUtterance(text.replace(/~/g, 'something'));
+    const voices = speechSynthesis.getVoices();
+    const enVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+    if(enVoice) u.voice = enVoice;
+    u.lang = 'en-US';
+    u.rate = 0.92;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }catch(e){ /* 音声合成非対応環境ではボタンのみ表示 */ }
+}
+
 function renderQuestion(){
   answeredThis = false;
   const q = order[current];
@@ -534,6 +611,24 @@ function renderQuestion(){
 
   document.getElementById('q-cat').textContent = q.cat;
   document.getElementById('q-prompt').textContent = q.prompt;
+  document.getElementById('q-prompt-sub').textContent = q.promptSub || '';
+
+  const hero = document.getElementById('q-hero');
+  hero.innerHTML = '';
+  if(q.hero && q.hero.kind === 'audio'){
+    const btn = document.createElement('button');
+    btn.className = 'audio-btn';
+    btn.textContent = '🔊';
+    btn.onclick = ()=>speakEnglish(q.hero.text);
+    const hint = document.createElement('div');
+    hint.className = 'audio-hint';
+    hint.textContent = 'タップして発音を聞く';
+    const col = document.createElement('div');
+    col.style.display='flex';col.style.flexDirection='column';col.style.alignItems='center';
+    col.appendChild(btn);col.appendChild(hint);
+    hero.appendChild(col);
+    setTimeout(()=>speakEnglish(q.hero.text), 300);
+  }
 
   const chosenWrongs = pickN(q.wrongPool, 3);
   currentOptions = shuffle([{text:q.answer, correct:true}, ...chosenWrongs.map(w=>({text:w, correct:false}))]);
@@ -544,7 +639,7 @@ function renderQuestion(){
     const b = document.createElement('button');
     b.className = 'opt';
     const span = document.createElement('span');
-    span.className = 'opt-en';
+    span.className = (q.optionStyle === 'en') ? 'opt-en' : 'opt-jp';
     span.textContent = opt.text;
     b.appendChild(span);
     b.onclick = ()=>selectOption(b, opt, q);
@@ -569,7 +664,7 @@ function selectOption(btn, opt, q){
   } else {
     btn.classList.add('wrong');
     allBtns.forEach(b=>{
-      const span = b.querySelector('.opt-en');
+      const span = b.querySelector('.opt-en, .opt-jp');
       if(span && span.textContent === q.answer){
         b.classList.add('reveal');
       }
