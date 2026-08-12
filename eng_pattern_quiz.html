@@ -828,7 +828,7 @@ function renderQuestion(){
     slowBtn.className = 'audio-btn audio-btn-slow';
     slowBtn.textContent = '🐢';
     slowBtn.title = 'ゆっくり再生';
-    slowBtn.onclick = ()=>speakEnglish(q.hero.text, 0.75);
+    slowBtn.onclick = ()=>speakEnglish(q.hero.text, 0.3);
 
     const hint = document.createElement('div');
     hint.className = 'audio-hint';
@@ -966,7 +966,7 @@ function showResult(){
       slowBtn.textContent = '🐢';
       slowBtn.title = 'ゆっくり再生';
       slowBtn.style.cssText = 'background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:4px 8px;border-radius:4px;font-size:11.5px;cursor:pointer;';
-      slowBtn.onclick = ()=>speakEnglish(r.heroText, 0.75);
+      slowBtn.onclick = ()=>speakEnglish(r.heroText, 0.3);
 
       audioRow.appendChild(btn);
       audioRow.appendChild(slowBtn);
