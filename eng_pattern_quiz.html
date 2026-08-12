@@ -789,14 +789,18 @@ function updateStitches(){
 
 function speakEnglish(text, rate){
   try{
-    const u = new SpeechSynthesisUtterance(text.replace(/~/g, 'something'));
-    const voices = speechSynthesis.getVoices();
-    const enVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
-    if(enVoice) u.voice = enVoice;
-    u.lang = 'en-US';
-    u.rate = rate || 1.0;
     speechSynthesis.cancel();
-    speechSynthesis.speak(u);
+    // Chrome系はcancel()直後のspeak()が正しく反映されないことがあるため、
+    // 少し間を空けてから発話する
+    setTimeout(()=>{
+      const u = new SpeechSynthesisUtterance(text.replace(/~/g, 'something'));
+      const voices = speechSynthesis.getVoices();
+      const enVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+      if(enVoice) u.voice = enVoice;
+      u.lang = 'en-US';
+      u.rate = rate || 1.0;
+      speechSynthesis.speak(u);
+    }, 60);
   }catch(e){ /* 音声合成非対応環境ではボタンのみ表示 */ }
 }
 
