@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ツアーガイド英語クイズ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,500;0,700;1,500&family=Noto+Serif+JP:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#17140f;
+    --card:#211d16;
+    --card2:#282318;
+    --parchment:#eae0c6;
+    --parchment-dim:#a89b7c;
+    --thread:#a1442f;
+    --thread-dim:#5c2a20;
+    --gold:#b8935f;
+    --gold-dim:#7a6440;
+    --line:#3a3326;
+    --good:#7a8f5c;
+    --bad:#a1442f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, #241f16 0%, transparent 55%),
+      radial-gradient(ellipse at 100% 110%, #1c1810 0%, transparent 55%),
+      var(--ink);
+    color:var(--parchment);
+    font-family:'Noto Sans JP',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    padding:32px 16px 64px;
+  }
+  .app{width:100%;max-width:640px;}
+
+  /* ---------- header / progress ---------- */
+  .top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .title{
+    font-family:'Noto Serif JP',serif;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.14em;
+    color:var(--gold);
+  }
+  .counter{
+    font-size:12px;
+    color:var(--parchment-dim);
+    font-variant-numeric:tabular-nums;
+  }
+  .stitches{
+    display:flex;
+    gap:3px;
+    margin:10px 0 28px;
+  }
+  .stitch{
+    flex:1;
+    height:3px;
+    background:var(--line);
+    border-radius:1px;
+    transition:background .25s ease;
+  }
+  .stitch.done{background:var(--thread);}
+  .stitch.current{background:var(--gold);}
+
+  /* ---------- card ---------- */
+  .card{
+    background:linear-gradient(180deg,var(--card2),var(--card));
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:36px 30px 28px;
+    position:relative;
+    box-shadow:0 20px 40px -20px rgba(0,0,0,.6);
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:0;left:24px;right:24px;
+    height:1px;
+    background:linear-gradient(90deg,transparent,var(--gold-dim),transparent);
+  }
+  .cat{
+    font-size:11px;
+    letter-spacing:.16em;
+    color:var(--parchment-dim);
+    text-align:center;
+    margin-bottom:18px;
+    text-transform:uppercase;
+  }
+
+  .prompt-ja{
+    font-family:'Noto Serif JP',serif;
+    font-size:19px;
+    font-weight:500;
+    color:var(--parchment);
+    text-align:center;
+    margin-bottom:8px;
+    line-height:1.7;
+  }
+  .prompt-sub{
+    font-size:12px;
+    color:var(--parchment-dim);
+    text-align:center;
+    margin-bottom:26px;
+  }
+  .prompt-en{
+    font-family:'EB Garamond',serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:24px;
+    color:var(--gold);
+    text-align:center;
+    margin-bottom:8px;
+    line-height:1.5;
+  }
+
+  .hero{
+    text-align:center;
+    margin-bottom:22px;
+    min-height:64px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .audio-btn{
+    width:76px;height:76px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #c79a5f, #7a5a33 70%);
+    border:1px solid var(--gold-dim);
+    color:var(--ink);
+    font-size:26px;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 14px -4px rgba(0,0,0,.6), inset 0 0 0 3px rgba(23,20,15,.25);
+    transition:transform .15s ease;
+  }
+  .audio-btn:active{transform:scale(.94);}
+  .audio-btn-slow{width:52px;height:52px;font-size:20px;}
+  .audio-hint{
+    font-size:11px;
+    color:var(--parchment-dim);
+    margin-top:8px;
+  }
+
+  .options{
+    display:grid;
+    gap:10px;
+  }
+  .opt{
+    text-align:left;
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--parchment);
+    padding:14px 16px;
+    border-radius:4px;
+    font-family:'Noto Sans JP',sans-serif;
+    font-size:15px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .opt .opt-en{
+    font-family:'EB Garamond',serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:18px;
+    color:var(--gold);
+  }
+  .opt .opt-jp{
+    font-size:15px;
+    color:var(--parchment);
+  }
+  .opt:hover:not(:disabled){border-color:var(--gold-dim);}
+  .opt:disabled{cursor:default;}
+  .opt.correct{border-color:var(--good);background:rgba(122,143,92,.14);}
+  .opt.wrong{border-color:var(--bad);background:rgba(161,68,47,.14);}
+  .opt.reveal{border-color:var(--good);}
+
+  .feedback{
+    margin-top:16px;
+    min-height:20px;
+    font-size:13px;
+    text-align:center;
+    color:var(--parchment-dim);
+  }
+  .feedback b{color:var(--gold);font-weight:700;}
+
+  .nextrow{
+    display:flex;
+    justify-content:flex-end;
+    margin-top:18px;
+  }
+  .next-btn{
+    background:var(--thread);
+    color:var(--parchment);
+    border:none;
+    padding:10px 22px;
+    border-radius:4px;
+    font-size:14px;
+    letter-spacing:.04em;
+    cursor:pointer;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+  }
+  .next-btn.show{opacity:1;pointer-events:auto;}
+  .next-btn:hover{background:#b64f37;}
+
+  /* ---------- start / result screens ---------- */
+  .center-card{
+    background:linear-gradient(180deg,var(--card2),var(--card));
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:44px 30px;
+    text-align:center;
+  }
+  .mark{
+    font-family:'EB Garamond',serif;
+    font-style:italic;
+    font-size:40px;
+    color:var(--gold);
+    margin-bottom:8px;
+  }
+  h1.headline{
+    font-family:'Noto Serif JP',serif;
+    font-size:22px;
+    margin:0 0 10px;
+    font-weight:700;
+  }
+  p.sub{
+    color:var(--parchment-dim);
+    font-size:13.5px;
+    line-height:1.8;
+    margin:0 0 28px;
+  }
+  .range-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-bottom:28px;
+  }
+  .range-cell{
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:12px 8px;
+    font-size:12px;
+    color:var(--parchment-dim);
+  }
+  .range-cell b{
+    display:block;
+    font-family:'Noto Serif JP',serif;
+    font-size:20px;
+    color:var(--gold);
+    font-weight:700;
+    margin-bottom:2px;
+  }
+  .primary-btn{
+    background:var(--thread);
+    color:var(--parchment);
+    border:none;
+    padding:14px 34px;
+    border-radius:4px;
+    font-size:15px;
+    letter-spacing:.05em;
+    cursor:pointer;
+  }
+  .primary-btn:hover{background:#b64f37;}
+  .ghost-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--parchment-dim);
+    padding:14px 24px;
+    border-radius:4px;
+    font-size:14px;
+    cursor:pointer;
+    margin-left:10px;
+  }
+  .ghost-btn:hover{border-color:var(--gold-dim);color:var(--parchment);}
+
+  .crumbs{
+    font-size:11px;
+    color:var(--parchment-dim);
+    letter-spacing:.06em;
+    margin-bottom:14px;
+  }
+  .choice-row{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:14px;
+    text-align:left;
+  }
+  .choice-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--parchment);
+    padding:14px 18px;
+    border-radius:4px;
+    font-size:14.5px;
+    cursor:pointer;
+    text-align:left;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .choice-btn:hover{border-color:var(--gold-dim);background:rgba(184,147,95,.08);}
+  .choice-btn .cb-sub{
+    display:block;
+    font-size:11.5px;
+    color:var(--parchment-dim);
+    margin-top:3px;
+  }
+  .back-link{
+    background:none;
+    border:none;
+    color:var(--parchment-dim);
+    font-size:12px;
+    cursor:pointer;
+    padding:0;
+    text-decoration:underline;
+  }
+
+  .score-big{
+    font-family:'Noto Serif JP',serif;
+    font-size:52px;
+    font-weight:700;
+    color:var(--gold);
+    margin:6px 0 2px;
+  }
+  .score-label{
+    font-size:12px;
+    color:var(--parchment-dim);
+    letter-spacing:.1em;
+    margin-bottom:26px;
+  }
+  .breakdown{
+    text-align:left;
+    border-top:1px solid var(--line);
+    padding-top:18px;
+    margin-top:8px;
+  }
+  .bd-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:7px 0;
+    border-bottom:1px solid var(--line);
+    color:var(--parchment-dim);
+  }
+  .bd-row b{color:var(--parchment);font-weight:500;}
+  .review-list{
+    text-align:left;
+    margin-top:22px;
+    max-height:260px;
+    overflow-y:auto;
+    border-top:1px solid var(--line);
+    padding-top:14px;
+  }
+  .review-item{
+    font-size:12.5px;
+    padding:10px 0;
+    border-bottom:1px solid var(--line);
+    color:var(--parchment-dim);
+  }
+  .review-item.is-correct{color:var(--parchment-dim);}
+  .review-item .rmark{margin-right:6px;}
+  .review-item .rprompt{color:var(--parchment);}
+  .review-item .ra{color:var(--good);}
+  .review-item .rw{color:var(--bad);text-decoration:line-through;margin-right:4px;}
+  .review-item .rexplain{
+    display:block;
+    margin-top:4px;
+    font-size:11.5px;
+    color:var(--parchment-dim);
+    padding-left:20px;
+  }
+
+  .hidden{display:none !important;}
+
+  @media (max-width:480px){
+    .card,.center-card{padding:26px 18px 22px;}
+    .range-grid{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- START SCREEN -->
+  <div id="screen-start" class="center-card">
+    <div class="mark">Guide it.</div>
+    <h1 class="headline">ツアーガイド英語クイズ</h1>
+    <p class="sub">岐阜(千畝)・京都(寺社)・広島(原爆ドーム)＋運営フレーズ、全87パターン。形式を選んで進む。</p>
+    <div id="wizard-panel"></div>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div id="screen-quiz" class="hidden">
+    <div class="top">
+      <div class="title">ツアーガイド英語クイズ</div>
+      <div class="counter"><span id="qnum">1</span> / <span id="qtotal">0</span></div>
+    </div>
+    <div class="stitches" id="stitches"></div>
+
+    <div class="card">
+      <div class="cat" id="q-cat"></div>
+      <div id="q-prompt" class="prompt-ja"></div>
+      <div class="prompt-sub" id="q-prompt-sub">この場面に合う表現はどれ？</div>
+      <div class="hero" id="q-hero"></div>
+      <div class="options" id="q-options"></div>
+      <div class="feedback" id="q-feedback"></div>
+      <div class="nextrow">
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div id="screen-result" class="center-card hidden">
+    <div class="mark" style="font-size:30px;">Done.</div>
+    <h1 class="headline">結果</h1>
+    <div class="score-big"><span id="score-num">0</span> / <span id="score-total">0</span></div>
+    <div class="score-label" id="score-pct">正答率 0%</div>
+
+    <div class="breakdown" id="breakdown"></div>
+
+    <div id="review-wrap">
+      <div class="review-list" id="review-list"></div>
+    </div>
+
+    <div style="margin-top:26px;">
+      <button class="primary-btn" onclick="runQuiz(lastRun)">もう一度（同じ形式）</button>
+      <button class="ghost-btn" onclick="showStart()">最初の画面へ</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =========================================================
+   1. データソース（正誤の元となる唯一の情報源）
+   ========================================================= */
+
+// 各パターン：en=英語表現／jp=意味／example=使う場面（日本語）／cat=分類
+const PATTERNS = [
+  // ---- 共通フレーズ ----
+  {en:"Good question. Let me explain.", jp:"良い質問ですね、説明します", example:"観光客に質問をされた時。", cat:"共通:質問対応"},
+  {en:"That depends, but…", jp:"場合によりますが…", example:"一概に言えない質問に答える時。", cat:"共通:質問対応"},
+  {en:"So what does that mean?", jp:"それはどういう意味？", example:"説明の後、聞き手に問いかける時。", cat:"共通:説明のつなぎ"},
+  {en:"In other words…", jp:"言い換えると…", example:"難しい説明を言い換える時。", cat:"共通:説明のつなぎ"},
+  {en:"To put it simply…", jp:"簡単に言うと…", example:"要点を簡潔にまとめる時。", cat:"共通:説明のつなぎ"},
+  {en:"Look closely at…", jp:"よく見てください…", example:"見どころを指し示す時。", cat:"共通:見どころ指示"},
+  {en:"Notice the difference between…", jp:"違いに注目してください…", example:"比較対象がある時。", cat:"共通:見どころ指示"},
+  {en:"Originally…", jp:"元々は…", example:"建物の当初の姿を説明する時。", cat:"共通:見どころ指示"},
+  {en:"Later on…", jp:"その後…", example:"時代の変化を説明する時。", cat:"共通:見どころ指示"},
+  {en:"It's estimated that…", jp:"推定では…", example:"正確な数字が不明な統計を話す時。", cat:"共通:不確実性"},
+  {en:"Sources vary, but roughly…", jp:"資料により差がありますが、おおよそ…", example:"諸説ある数字を伝える時。", cat:"共通:不確実性"},
+  {en:"The exact number is unknown.", jp:"正確な数は不明です", example:"データに確証がない時。", cat:"共通:不確実性"},
+
+  // ---- Day1: 岐阜(千畝) ----
+  {en:"This museum is located in his hometown.", jp:"この記念館は彼の出身地にあります", example:"千畝記念館の紹介時。", cat:"岐阜:千畝"},
+  {en:"Let's walk through his story chronologically.", jp:"彼の物語を時系列で見ていきましょう", example:"展示の見学を始める時。", cat:"岐阜:千畝"},
+  {en:"He issued visas without official authorization.", jp:"彼は正式な許可なくビザを発給した", example:"ビザ発給の経緯を説明する時。", cat:"岐阜:千畝"},
+  {en:"The exact number saved is estimated, sources differ.", jp:"救われた人数は推定で、資料により異なる", example:"救済人数を聞かれた時。", cat:"岐阜:千畝"},
+  {en:"He was later honored as \"Righteous Among the Nations.\"", jp:"彼は後に「諸国民の中の正義の人」として顕彰された", example:"戦後の評価を説明する時。", cat:"岐阜:千畝"},
+  {en:"visa", jp:"ビザ", example:"入国のためにビザが必要だった。", cat:"岐阜:語彙"},
+  {en:"consul", jp:"領事", example:"彼はカウナスの領事だった。", cat:"岐阜:語彙"},
+  {en:"refugee", jp:"難民", example:"多くの難民がビザを求めて並んだ。", cat:"岐阜:語彙"},
+  {en:"unauthorized", jp:"無許可の", example:"無許可でビザを発給した。", cat:"岐阜:語彙"},
+  {en:"humanitarian", jp:"人道的な", example:"人道的な判断だった。", cat:"岐阜:語彙"},
+  {en:"transit visa", jp:"通過ビザ", example:"日本を通過するための通過ビザ。", cat:"岐阜:語彙"},
+  {en:"Righteous Among the Nations", jp:"諸国民の中の正義の人", example:"イスラエルから贈られた称号。", cat:"岐阜:語彙"},
+  {en:"defiance (of orders)", jp:"（命令への）反抗", example:"本国の命令に反した行動だった。", cat:"岐阜:語彙"},
+  {en:"Trans-Siberian Railway", jp:"シベリア鉄道", example:"難民はシベリア鉄道で移動した。", cat:"岐阜:語彙"},
+  {en:"Kaunas", jp:"カウナス", example:"領事館があった都市。", cat:"岐阜:語彙"},
+
+  // ---- Day2: 京都(寺社) ----
+  {en:"This temple belongs to the __ school of Buddhism.", jp:"この寺は__宗に属します", example:"宗派を説明する時。", cat:"京都:寺社"},
+  {en:"Notice how the garden is designed to be viewed from…", jp:"この庭は…から見るよう設計されています", example:"庭園の鑑賞ポイントを説明する時。", cat:"京都:寺社"},
+  {en:"It was rebuilt in the __ century after a fire.", jp:"火事の後、__世紀に再建されました", example:"建築の歴史を説明する時。", cat:"京都:寺社"},
+  {en:"temple", jp:"寺", example:"京都には多くの寺がある。", cat:"京都:語彙"},
+  {en:"shrine", jp:"神社", example:"神社は神道の施設。", cat:"京都:語彙"},
+  {en:"sect (school)", jp:"宗派", example:"この寺は禅宗に属する。", cat:"京都:語彙"},
+  {en:"founder", jp:"開山", example:"開山は鎌倉時代の僧。", cat:"京都:語彙"},
+  {en:"principal image (honzon)", jp:"本尊", example:"本堂の本尊を拝観する。", cat:"京都:語彙"},
+  {en:"garden (dry landscape)", jp:"枯山水庭園", example:"石と砂で山水を表現した庭。", cat:"京都:語彙"},
+  {en:"pagoda", jp:"塔", example:"五重塔がそびえる。", cat:"京都:語彙"},
+  {en:"gate (sanmon/torii)", jp:"山門・鳥居", example:"山門をくぐって境内へ入る。", cat:"京都:語彙"},
+  {en:"renovation", jp:"改修", example:"江戸時代に大規模な改修があった。", cat:"京都:語彙"},
+  {en:"UNESCO World Heritage", jp:"世界遺産", example:"この寺は世界遺産に登録されている。", cat:"京都:語彙"},
+  {en:"Zen", jp:"禅", example:"禅の教えに基づく庭園。", cat:"京都:語彙"},
+  {en:"pilgrimage", jp:"巡礼", example:"巡礼者が訪れる霊場。", cat:"京都:語彙"},
+
+  // ---- Day3: 広島 ----
+  {en:"At 8:15 a.m. on August 6, 1945…", jp:"1945年8月6日午前8時15分…", example:"原爆投下の時刻を説明する時。", cat:"広島:原爆ドーム"},
+  {en:"What remained was…", jp:"残ったのは…", example:"ドームの現状を説明する時。", cat:"広島:原爆ドーム"},
+  {en:"The structure survived because…", jp:"この建物が残った理由は…", example:"構造的理由を説明する時。", cat:"広島:原爆ドーム"},
+  {en:"This site has been preserved as a reminder of…", jp:"この場所は…を伝えるために保存されています", example:"保存の意義を説明する時。", cat:"広島:原爆ドーム"},
+  {en:"This is a place for quiet reflection.", jp:"ここは静かに黙想する場所です", example:"慰霊碑周辺での案内時。", cat:"広島:原爆ドーム"},
+  {en:"I'll pause here for a moment of silence if that's alright.", jp:"よろしければここで黙祷します", example:"黙祷を提案する時。", cat:"広島:原爆ドーム"},
+  {en:"atomic bomb", jp:"原爆", example:"1945年に原爆が投下された。", cat:"広島:語彙"},
+  {en:"blast", jp:"爆風", example:"爆風で建物が破壊された。", cat:"広島:語彙"},
+  {en:"epicenter (hypocenter)", jp:"爆心地", example:"ドームは爆心地近くにあった。", cat:"広島:語彙"},
+  {en:"dome", jp:"ドーム", example:"原爆ドームの名の由来。", cat:"広島:語彙"},
+  {en:"preserved", jp:"保存された", example:"廃墟のまま保存されている。", cat:"広島:語彙"},
+  {en:"ruins", jp:"廃墟", example:"廃墟がそのまま残されている。", cat:"広島:語彙"},
+  {en:"memorial", jp:"記念碑", example:"平和記念公園内の記念碑。", cat:"広島:語彙"},
+  {en:"cenotaph", jp:"慰霊碑", example:"原爆死没者慰霊碑。", cat:"広島:語彙"},
+  {en:"casualties", jp:"死傷者", example:"死傷者数は推定で語られる。", cat:"広島:語彙"},
+  {en:"survivors (hibakusha)", jp:"被爆者", example:"被爆者の証言を聞く。", cat:"広島:語彙"},
+  {en:"radiation", jp:"放射線", example:"放射線による健康被害。", cat:"広島:語彙"},
+  {en:"reconstruction", jp:"復興", example:"戦後の広島の復興。", cat:"広島:語彙"},
+  {en:"peace", jp:"平和", example:"平和記念公園という名称。", cat:"広島:語彙"},
+  {en:"monument", jp:"記念碑・モニュメント", example:"様々な記念碑が公園内にある。", cat:"広島:語彙"},
+  {en:"inscription", jp:"碑文", example:"慰霊碑の碑文を読む。", cat:"広島:語彙"},
+  {en:"flame", jp:"灯", example:"平和の灯は核兵器廃絶まで灯され続ける。", cat:"広島:語彙"},
+  {en:"wreath", jp:"花輪", example:"慰霊祭で花輪が捧げられる。", cat:"広島:語彙"},
+  {en:"paper crane", jp:"折り鶴", example:"佐々木禎子の折り鶴のエピソード。", cat:"広島:語彙"},
+
+  // ---- 運営フレーズ ----
+  {en:"We have about __ minutes here.", jp:"ここで約__分です", example:"滞在時間を伝える時。", cat:"運営:進行"},
+  {en:"Let's move on to the next spot.", jp:"次へ移動しましょう", example:"移動を促す時。", cat:"運営:進行"},
+  {en:"Please follow me.", jp:"ついてきてください", example:"誘導する時。", cat:"運営:進行"},
+  {en:"We'll regroup here in __ minutes.", jp:"__分後にここに集合してください", example:"自由行動前の案内時。", cat:"運営:進行"},
+  {en:"Please watch your step.", jp:"足元にご注意ください", example:"段差や階段がある場所で。", cat:"運営:安全"},
+  {en:"Please don't touch.", jp:"触れないでください", example:"展示物や文化財の前で。", cat:"運営:安全"},
+  {en:"This area is off-limits.", jp:"この区域は立入禁止です", example:"制限区域の案内時。", cat:"運営:安全"},
+  {en:"Feel free to take photos here.", jp:"ここは撮影自由です", example:"撮影可能な場所での案内。", cat:"運営:写真マナー"},
+  {en:"Photography isn't allowed here.", jp:"ここは撮影禁止です", example:"撮影禁止の場所での案内。", cat:"運営:写真マナー"},
+  {en:"Does that make sense?", jp:"伝わりましたか", example:"説明の後の確認。", cat:"運営:確認"},
+  {en:"Sorry, could you repeat that?", jp:"すみません、もう一度お願いします", example:"聞き取れなかった時。", cat:"運営:確認"},
+  {en:"Did everyone hear that?", jp:"皆さん聞こえましたか", example:"グループ全体への確認。", cat:"運営:確認"},
+  {en:"The restroom is over there.", jp:"お手洗いはあちらです", example:"トイレの場所を伝える時。", cat:"運営:体調配慮"},
+  {en:"Let's take a short break.", jp:"少し休憩しましょう", example:"休憩を提案する時。", cat:"運営:体調配慮"},
+  {en:"Are you feeling okay?", jp:"大丈夫ですか", example:"体調を気遣う時。", cat:"運営:体調配慮"},
+  {en:"It might rain later, so please bring an umbrella.", jp:"後で雨が降るかもしれないので傘をお持ちください", example:"天気の注意喚起。", cat:"運営:体調配慮"},
+  {en:"Please stay hydrated.", jp:"水分補給を忘れずに", example:"熱中症対策の注意喚起。", cat:"運営:体調配慮"},
+  {en:"Sorry, let me correct that.", jp:"すみません、訂正します", example:"説明の誤りを訂正する時。", cat:"運営:謝罪訂正"},
+  {en:"I'm not sure about that — let me check.", jp:"それは不明です、確認します", example:"分からない質問への対応。", cat:"運営:謝罪訂正"},
+  {en:"Thank you for joining today's tour.", jp:"本日はご参加ありがとうございました", example:"ツアー終了の挨拶。", cat:"運営:締め"},
+  {en:"Do you have any questions before we finish?", jp:"終わる前に質問はありますか", example:"締めの前の質問募集。", cat:"運営:締め"},
+];
+
+/* =========================================================
+   2. 問題生成（データから自動生成。手打ちの誤答は作らない）
+   ========================================================= */
+
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function pickN(pool, n){
+  return shuffle(pool).slice(0, Math.min(n, pool.length));
+}
+
+let ALL_QUESTIONS = [];
+
+// ---- 1a1: 基礎・日本語→英語 ----
+function buildReadingBasicJ2E(list){
+  return list.map(p=>{
+    const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.en), 7);
+    return {
+      cat:p.cat, type:'reading-basic-j2e', optionStyle:'en', promptStyle:'jp',
+      prompt:p.jp, promptSub:'この意味に合う表現はどれ？',
+      hero:{kind:'none'},
+      answer:p.en, wrongPool:wrong,
+      explain:`「${p.jp}」→「${p.en}」`
+    };
+  });
+}
+
+// ---- 1a2: 基礎・英語→日本語 ----
+function buildReadingBasicE2J(list){
+  return list.map(p=>{
+    const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.jp), 7);
+    return {
+      cat:p.cat, type:'reading-basic-e2j', optionStyle:'jp', promptStyle:'en',
+      prompt:p.en, promptSub:'の意味は？',
+      hero:{kind:'none'},
+      answer:p.jp, wrongPool:wrong,
+      explain:`「${p.en}」は「${p.jp}」という意味。`
+    };
+  });
+}
+
+// ---- 1b1: 産出・日本語→英語 ----
+function buildReadingProduceJ2E(list){
+  return list.map(p=>{
+    const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.en), 7);
+    return {
+      cat:p.cat, type:'reading-produce-j2e', optionStyle:'en', promptStyle:'jp',
+      prompt:p.example, promptSub:'この場面に合う表現はどれ？',
+      hero:{kind:'none'},
+      answer:p.en, wrongPool:wrong,
+      explain:`「${p.example}」→「${p.en}」（${p.jp}）を使う場面。`
+    };
+  });
+}
+
+// ---- 1b2: 産出・英語→日本語 ----
+function buildReadingProduceE2J(list){
+  return list.map(p=>{
+    const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.example), 7);
+    return {
+      cat:p.cat, type:'reading-produce-e2j', optionStyle:'jp', promptStyle:'en',
+      prompt:p.en, promptSub:'合う状況はどれ？',
+      hero:{kind:'none'},
+      answer:p.example, wrongPool:wrong,
+      explain:`「${p.en}」（${p.jp}）→「${p.example}」の場面。`
+    };
+  });
+}
+
+// ---- 2a: リスニング基礎（音声→日本語の意味） ----
+function buildListeningBasicE2J(list){
+  return list.map(p=>{
+    const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.jp), 7);
+    return {
+      cat:p.cat, type:'listening-basic-e2j', optionStyle:'jp', promptStyle:'jp',
+      prompt:'読み上げられた表現の意味は？', promptSub:'',
+      hero:{kind:'audio', text:p.en},
+      answer:p.jp, wrongPool:wrong,
+      explain:`「${p.en}」は「${p.jp}」という意味（例：${p.example}）。`
+    };
+  });
+}
+
+// ---- 2b: リスニング産出（音声→合う状況） ----
+function buildListeningProduceE2J(list){
+  return list.map(p=>{
+    const wrong = pickN(PATTERNS.filter(x=>x!==p).map(x=>x.example), 7);
+    return {
+      cat:p.cat, type:'listening-produce-e2j', optionStyle:'jp', promptStyle:'jp',
+      prompt:'読み上げられた表現を使う場面は？', promptSub:'',
+      hero:{kind:'audio', text:p.en},
+      answer:p.example, wrongPool:wrong,
+      explain:`「${p.en}」（${p.jp}）→「${p.example}」の場面（音声）。`
+    };
+  });
+}
+
+function getQuestions(format, level, direction, n){
+  const list = pickN(PATTERNS, n);
+  if(format === 'reading'){
+    if(level === 'basic') return direction === 'j2e' ? buildReadingBasicJ2E(list) : buildReadingBasicE2J(list);
+    return direction === 'j2e' ? buildReadingProduceJ2E(list) : buildReadingProduceE2J(list);
+  } else {
+    return level === 'basic' ? buildListeningBasicE2J(list) : buildListeningProduceE2J(list);
+  }
+}
+
+// 全問：87パターンを半分ずつ日本語→英語／英語→日本語に振り分け（リーディング87）
+// ＋ 全87パターンをリスニング（音声→日本語）で出題（リスニング87）＝計174問
+function getFullQuestions(level){
+  const shuffled = shuffle(PATTERNS);
+  const half = Math.floor(shuffled.length / 2);
+  const groupA = shuffled.slice(0, half);
+  const groupB = shuffled.slice(half);
+  let readingQs;
+  if(level === 'basic'){
+    readingQs = [...buildReadingBasicJ2E(groupA), ...buildReadingBasicE2J(groupB)];
+  } else {
+    readingQs = [...buildReadingProduceJ2E(groupA), ...buildReadingProduceE2J(groupB)];
+  }
+  const listeningQs = (level === 'basic') ? buildListeningBasicE2J(PATTERNS) : buildListeningProduceE2J(PATTERNS);
+  return shuffle([...readingQs, ...listeningQs]);
+}
+
+/* =========================================================
+   3. クイズ進行ロジック
+   ========================================================= */
+
+let order = [];
+let current = 0;
+let score = 0;
+let results = [];
+let answeredThis = false;
+let currentOptions = [];
+
+const FORMAT_LABEL = {reading:'📖 リーディング', listening:'🎧 リスニング', full:'🗂 全問'};
+const LEVEL_LABEL = {basic:'基礎', produce:'産出'};
+const DIRECTION_LABEL = {j2e:'日本語→英語', e2j:'英語→日本語'};
+
+let wizardState = {format:null, level:null, direction:null};
+let lastRun = null;
+
+function choiceButton(label, sub, onClick){
+  const b = document.createElement('button');
+  b.className = 'choice-btn';
+  b.innerHTML = label + (sub ? '<span class="cb-sub">'+sub+'</span>' : '');
+  b.onclick = onClick;
+  return b;
+}
+function backLink(onClick){
+  const b = document.createElement('button');
+  b.className = 'back-link';
+  b.textContent = '← 戻る';
+  b.onclick = onClick;
+  return b;
+}
+
+function renderWizard(){
+  const panel = document.getElementById('wizard-panel');
+  panel.innerHTML = '';
+
+  const crumbParts = [];
+  if(wizardState.format) crumbParts.push(FORMAT_LABEL[wizardState.format]);
+  if(wizardState.level) crumbParts.push(LEVEL_LABEL[wizardState.level]);
+  if(wizardState.direction) crumbParts.push(DIRECTION_LABEL[wizardState.direction]);
+  if(crumbParts.length){
+    const c = document.createElement('div');
+    c.className = 'crumbs';
+    c.textContent = crumbParts.join(' ▸ ');
+    panel.appendChild(c);
+  }
+
+  const row = document.createElement('div');
+  row.className = 'choice-row';
+
+  // Step 0: 形式
+  if(!wizardState.format){
+    row.appendChild(choiceButton('📖 リーディング', '文字で読んで答える', ()=>{wizardState.format='reading'; renderWizard();}));
+    row.appendChild(choiceButton('🎧 リスニング', '音声を聞いて答える', ()=>{wizardState.format='listening'; renderWizard();}));
+    row.appendChild(choiceButton('🗂 全問', '基礎174問／産出174問（リーディング＋リスニング混在・固定）', ()=>{wizardState.format='full'; renderWizard();}));
+    panel.appendChild(row);
+    return;
+  }
+
+  // Step 1: レベル
+  if(!wizardState.level){
+    row.appendChild(choiceButton('基礎', '語・パターンの意味そのものを覚える', ()=>{wizardState.level='basic'; renderWizard();}));
+    row.appendChild(choiceButton('産出', '状況文を踏まえて使い分ける', ()=>{wizardState.level='produce'; renderWizard();}));
+    panel.appendChild(row);
+    panel.appendChild(backLink(()=>{wizardState.format=null; renderWizard();}));
+    return;
+  }
+
+  // 全問はここで即開始
+  if(wizardState.format === 'full'){
+    row.appendChild(choiceButton('開始（174問固定）', 'リーディング87問＋リスニング87問', ()=>{runQuiz({format:'full', level:wizardState.level});}));
+    panel.appendChild(row);
+    panel.appendChild(backLink(()=>{wizardState.level=null; renderWizard();}));
+    return;
+  }
+
+  // Step 2: 方向（リーディングのみ選択、リスニングは自動でe2j）
+  if(wizardState.format === 'reading' && !wizardState.direction){
+    row.appendChild(choiceButton('日本語→英語', '日本語を見て英語表現を選ぶ', ()=>{wizardState.direction='j2e'; renderWizard();}));
+    row.appendChild(choiceButton('英語→日本語', '英語表現を見て意味を選ぶ', ()=>{wizardState.direction='e2j'; renderWizard();}));
+    panel.appendChild(row);
+    panel.appendChild(backLink(()=>{wizardState.level=null; renderWizard();}));
+    return;
+  }
+  if(wizardState.format === 'listening' && !wizardState.direction){
+    wizardState.direction = 'e2j';
+    renderWizard();
+    return;
+  }
+
+  // Step 3: 問題数
+  row.appendChild(choiceButton('10問', '', ()=>runQuiz({format:wizardState.format, level:wizardState.level, direction:wizardState.direction, count:10})));
+  row.appendChild(choiceButton('20問', '', ()=>runQuiz({format:wizardState.format, level:wizardState.level, direction:wizardState.direction, count:20})));
+  row.appendChild(choiceButton('40問', '', ()=>runQuiz({format:wizardState.format, level:wizardState.level, direction:wizardState.direction, count:40})));
+  row.appendChild(choiceButton('87問（全パターン）', '', ()=>runQuiz({format:wizardState.format, level:wizardState.level, direction:wizardState.direction, count:87})));
+  panel.appendChild(row);
+  panel.appendChild(backLink(()=>{
+    wizardState.direction = null;
+    if(wizardState.format === 'listening'){ wizardState.level = null; }
+    renderWizard();
+  }));
+}
+
+function showStart(){
+  wizardState = {format:null, level:null, direction:null};
+  renderWizard();
+  document.getElementById('screen-start').classList.remove('hidden');
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+}
+
+function runQuiz(spec){
+  lastRun = spec;
+  const qs = (spec.format === 'full') ? getFullQuestions(spec.level) : getQuestions(spec.format, spec.level, spec.direction, spec.count);
+  beginQuiz(qs);
+}
+
+function beginQuiz(qs){
+  order = shuffle(qs);
+  current = 0;
+  score = 0;
+  results = [];
+
+  document.getElementById('screen-start').classList.add('hidden');
+  document.getElementById('screen-result').classList.add('hidden');
+  document.getElementById('screen-quiz').classList.remove('hidden');
+
+  document.getElementById('qtotal').textContent = order.length;
+  buildStitches();
+  renderQuestion();
+}
+
+function buildStitches(){
+  const wrap = document.getElementById('stitches');
+  wrap.innerHTML = '';
+  const n = order.length;
+  for(let i=0;i<n;i++){
+    const d = document.createElement('div');
+    d.className = 'stitch';
+    d.id = 'stitch-'+i;
+    wrap.appendChild(d);
+  }
+}
+
+function updateStitches(){
+  for(let i=0;i<order.length;i++){
+    const el = document.getElementById('stitch-'+i);
+    if(!el) continue;
+    el.classList.remove('done','current');
+    if(i < current) el.classList.add('done');
+    else if(i === current) el.classList.add('current');
+  }
+}
+
+function speakEnglish(text, rate){
+  try{
+    speechSynthesis.cancel();
+    // Chrome系はcancel()直後のspeak()が正しく反映されないことがあるため、
+    // 少し間を空けてから発話する
+    setTimeout(()=>{
+      const u = new SpeechSynthesisUtterance(text.replace(/~/g, 'something'));
+      const voices = speechSynthesis.getVoices();
+      const enVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('en'));
+      if(enVoice) u.voice = enVoice;
+      u.lang = 'en-US';
+      u.rate = rate || 1.0;
+      speechSynthesis.speak(u);
+    }, 60);
+  }catch(e){ /* 音声合成非対応環境ではボタンのみ表示 */ }
+}
+
+function renderQuestion(){
+  answeredThis = false;
+  const q = order[current];
+  document.getElementById('qnum').textContent = current+1;
+  updateStitches();
+
+  document.getElementById('q-cat').textContent = q.cat;
+  const promptEl = document.getElementById('q-prompt');
+  promptEl.textContent = q.prompt;
+  promptEl.className = (q.promptStyle === 'en') ? 'prompt-en' : 'prompt-ja';
+  document.getElementById('q-prompt-sub').textContent = q.promptSub || '';
+
+  const hero = document.getElementById('q-hero');
+  hero.innerHTML = '';
+  if(q.hero && q.hero.kind === 'audio'){
+    const btn = document.createElement('button');
+    btn.className = 'audio-btn';
+    btn.textContent = '🔊';
+    btn.onclick = ()=>speakEnglish(q.hero.text, 1.0);
+
+    const slowBtn = document.createElement('button');
+    slowBtn.className = 'audio-btn audio-btn-slow';
+    slowBtn.textContent = '🐢';
+    slowBtn.title = 'ゆっくり再生';
+    slowBtn.onclick = ()=>speakEnglish(q.hero.text, 0.3);
+
+    const hint = document.createElement('div');
+    hint.className = 'audio-hint';
+    hint.textContent = 'タップして発音を聞く（🐢=ゆっくり）';
+
+    const row = document.createElement('div');
+    row.style.display='flex';row.style.gap='14px';row.style.alignItems='center';row.style.justifyContent='center';
+    row.appendChild(btn);row.appendChild(slowBtn);
+
+    const col = document.createElement('div');
+    col.style.display='flex';col.style.flexDirection='column';col.style.alignItems='center';
+    col.appendChild(row);col.appendChild(hint);
+    hero.appendChild(col);
+    setTimeout(()=>speakEnglish(q.hero.text, 1.0), 300);
+  }
+
+  const chosenWrongs = pickN(q.wrongPool, 3);
+  currentOptions = shuffle([{text:q.answer, correct:true}, ...chosenWrongs.map(w=>({text:w, correct:false}))]);
+
+  const optWrap = document.getElementById('q-options');
+  optWrap.innerHTML = '';
+  currentOptions.forEach(opt=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    const span = document.createElement('span');
+    span.className = (q.optionStyle === 'en') ? 'opt-en' : 'opt-jp';
+    span.textContent = opt.text;
+    b.appendChild(span);
+    b.onclick = ()=>selectOption(b, opt, q);
+    optWrap.appendChild(b);
+  });
+
+  document.getElementById('q-feedback').innerHTML = '';
+  document.getElementById('next-btn').classList.remove('show');
+}
+
+function selectOption(btn, opt, q){
+  if(answeredThis) return;
+  answeredThis = true;
+
+  const allBtns = document.querySelectorAll('#q-options .opt');
+  allBtns.forEach(b=>b.disabled = true);
+
+  if(opt.correct){
+    btn.classList.add('correct');
+    score++;
+    document.getElementById('q-feedback').innerHTML = '<b>正解。</b>';
+  } else {
+    btn.classList.add('wrong');
+    allBtns.forEach(b=>{
+      const span = b.querySelector('.opt-en, .opt-jp');
+      if(span && span.textContent === q.answer){
+        b.classList.add('reveal');
+      }
+    });
+    document.getElementById('q-feedback').innerHTML = '不正解。正解: <b>'+q.answer+'</b>';
+  }
+
+  if(q.hero && q.hero.kind === 'audio'){
+    document.getElementById('q-feedback').innerHTML +=
+      '<div style="margin-top:8px;">音声: <b>'+q.hero.text+'</b></div>';
+  }
+
+  results.push({
+    cat:q.cat, prompt:q.prompt, answer:q.answer, chosen:opt.text, correct:opt.correct,
+    explain:q.explain, heroText: (q.hero && q.hero.kind === 'audio') ? q.hero.text : null
+  });
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= order.length){
+    showResult();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showResult(){
+  document.getElementById('screen-quiz').classList.add('hidden');
+  document.getElementById('screen-result').classList.remove('hidden');
+
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('score-total').textContent = order.length;
+  const pct = Math.round((score/order.length)*100);
+  document.getElementById('score-pct').textContent = '正答率 ' + pct + '%';
+
+  const byCat = {};
+  results.forEach(r=>{
+    if(!byCat[r.cat]) byCat[r.cat] = {correct:0, total:0};
+    byCat[r.cat].total++;
+    if(r.correct) byCat[r.cat].correct++;
+  });
+  const bd = document.getElementById('breakdown');
+  bd.innerHTML = '';
+  Object.keys(byCat).forEach(cat=>{
+    const row = document.createElement('div');
+    row.className = 'bd-row';
+    row.innerHTML = '<span>'+cat+'</span><b>'+byCat[cat].correct+' / '+byCat[cat].total+'</b>';
+    bd.appendChild(row);
+  });
+
+  const rl = document.getElementById('review-list');
+  rl.innerHTML = '';
+  const h = document.createElement('div');
+  h.style.fontSize='12px';
+  h.style.color='var(--parchment-dim)';
+  h.style.marginBottom='10px';
+  h.textContent = '解答一覧（全'+results.length+'問）';
+  rl.appendChild(h);
+
+  results.forEach(r=>{
+    const item = document.createElement('div');
+    item.className = 'review-item' + (r.correct ? ' is-correct' : ' is-wrong');
+    if(r.correct){
+      item.innerHTML =
+        '<span class="rmark">✅</span><span class="rprompt">'+r.prompt+'</span>　<span class="ra">'+r.answer+'</span>';
+    } else {
+      item.innerHTML =
+        '<span class="rmark">❌</span><span class="rprompt">'+r.prompt+'</span>　'+
+        '<span class="rw">'+r.chosen+'</span><span class="ra">→ '+r.answer+'</span>'+
+        '<span class="rexplain">'+r.explain+'</span>';
+    }
+    if(r.heroText){
+      const audioRow = document.createElement('div');
+      audioRow.style.cssText = 'margin-top:6px;padding-left:20px;display:flex;gap:8px;align-items:center;';
+
+      const btn = document.createElement('button');
+      btn.textContent = '🔊 ' + r.heroText;
+      btn.style.cssText = 'background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:4px 10px;border-radius:4px;font-size:11.5px;cursor:pointer;font-family:inherit;';
+      btn.onclick = ()=>speakEnglish(r.heroText, 1.0);
+
+      const slowBtn = document.createElement('button');
+      slowBtn.textContent = '🐢';
+      slowBtn.title = 'ゆっくり再生';
+      slowBtn.style.cssText = 'background:transparent;border:1px solid var(--gold-dim);color:var(--gold);padding:4px 8px;border-radius:4px;font-size:11.5px;cursor:pointer;';
+      slowBtn.onclick = ()=>speakEnglish(r.heroText, 0.3);
+
+      audioRow.appendChild(btn);
+      audioRow.appendChild(slowBtn);
+      item.appendChild(audioRow);
+    }
+    rl.appendChild(item);
+  });
+}
+
+showStart();
+</script>
+</body>
+</html>
