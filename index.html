@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>Index</title>
+<style>
+  body { font-family: sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #222; }
+  h1 { font-size: 1.2rem; }
+  ul { padding-left: 1.2em; }
+  li { margin: 6px 0; }
+  a { color: #0366d6; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  #status { color: #888; font-size: 0.9em; }
+</style>
+</head>
+<body>
+<h1>ページ一覧</h1>
+<div id="status">読み込み中…</div>
+<ul id="list"></ul>
+
+<script>
+// ここを自分のGitHubユーザー名とリポジトリ名に書き換える
+const OWNER = "YOUR_GITHUB_USERNAME";
+const REPO  = "YOUR_REPO_NAME";
+// サブフォルダにhtmlを置く場合はここに指定（ルート直下なら空文字のまま）
+const PATH  = "";
+
+const apiUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
+
+fetch(apiUrl)
+  .then(res => {
+    if (!res.ok) throw new Error(`GitHub API error: ${res.status}`);
+    return res.json();
+  })
+  .then(files => {
+    const htmlFiles = files
+      .filter(f => f.type === "file" && f.name.endsWith(".html") && f.name !== "index.html")
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const list = document.getElementById("list");
+    const status = document.getElementById("status");
+
+    if (htmlFiles.length === 0) {
+      status.textContent = "htmlファイルが見つからない";
+      return;
+    }
+
+    status.textContent = "";
+    htmlFiles.forEach(f => {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = f.name;
+      a.textContent = f.name.replace(/\.html$/, "");
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+  })
+  .catch(err => {
+    document.getElementById("status").textContent =
+      "一覧取得に失敗（レート制限、またはリポジトリ設定を確認）: " + err.message;
+  });
+</script>
+</body>
+</html>
